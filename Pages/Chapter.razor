@@ -156,7 +156,7 @@
                 book = BibleSummaryData.GetBook(1);
             }
         }
-        chapter = Startup.api.Chapters[book.chapterIdx];
+        chapter = Startup.api.Chapters[book.chapterIdx + ch - 1];
         first = chapter.writIdx;
         last = (UInt32)(first + chapter.wordCnt - 1);
         return book.name + " " + ch.ToString();
