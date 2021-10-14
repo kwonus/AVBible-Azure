@@ -1,0 +1,179 @@
+﻿@page "/chapter"
+@using DigitalAV
+@using DigitalAV.Data
+@using AVSDK
+@using AVText
+
+@inject NavigationManager UriHelper
+
+<h1>@GetBookAndChapter()</h1>
+
+<div style="word-break:break-word; overflow-y:scroll">
+    @for (var cursor = first; cursor <= last && GetWrit(cursor); cursor++)
+    {
+        @if (bov)
+        {
+            <span id='@vid' class='verse'><b><sup>@vstr</sup></b> </span>
+        }
+        @if (parenOpen)
+        {
+            <span>&nbsp;(</span>
+        }
+        @if (!parenOpen)
+        {
+            <span>&nbsp;</span>
+        }
+        @if (italics)
+        {
+            <em>
+                @if (jesus)
+                {
+                    <span class='@wid' verse='verse' jesus='1'>@lex</span>
+                }
+                @if (!jesus)
+                {
+                    <span class='@wid' verse='verse'>@lex</span>
+                }
+            </em>
+        }
+        @if (!italics)
+        {
+            @if (jesus == true)
+            {
+                <span class='@wid' verse='@vid' jesus='1'>@lex</span>
+            }
+            @if (jesus != true)
+            {
+                <span class='@wid' verse='@vid'>@lex</span>
+            }
+        }
+        @if (parenClose)
+        {
+            <span>)</span>
+        }
+        @if (punc != null)
+        {
+            <span>@punc</span>
+        }
+    }
+</div>
+
+@code
+{
+    private Writ176 writ;
+    private UInt32 cursor;
+    private byte v = 0;
+    private string vstr = "1";
+    private string vid = "v1";
+    private string wid = "w1";
+    private bool paren = false;
+    private bool parenOpen = false;
+    private bool parenClose = false;
+    private bool bov = true;
+
+    private bool jesus = false;
+    private bool italics = false;
+    private string lex = "";
+    private string punc = null;
+
+    private bool GetWrit(UInt32 cursor)
+    {
+        var result = Startup.api.XWrit.GetRecord(cursor, ref writ);
+        if (result)
+        {
+            parenClose = false;
+            wid = "w" + writ.word;
+            lex = avx ? AVLexicon.GetLexModern(writ.word) : AVLexicon.GetLex(writ.word);
+            if ((writ.punc & 0x10) != 0)
+            {
+                var s = (lex[lex.Length - 1] | 0x20) == 's';
+                lex += (s ? "'" : "'s");
+            }
+            bov = (writ.trans & (byte)AVSDK.Transitions.VerseTransition) == (byte)AVSDK.Transitions.BeginingOfVerse;
+            if (bov)
+            {
+                vstr = (++v).ToString();
+                vid = "v" + vstr;
+            }
+            jesus = (writ.punc & 0x01) != 0;
+            italics = (writ.punc & 0x02) != 0;
+
+            if (((writ.punc & 0x04) != 0) && !paren)
+            {
+                paren = true;
+                parenOpen = true;
+            }
+            else
+            {
+                parenOpen = false;
+            }
+            punc = PostPunc(writ.punc);
+
+            Startup.api.XWrit.Next();
+
+            if (paren)
+            {
+                var next = Startup.api.XWrit.GetRecord(cursor, ref writ);
+
+                if (((writ.punc & 0x04) == 0) && !paren)
+                {
+                    paren = false;
+                    parenClose = true;
+                }
+            }
+        }
+        return result;
+    }
+    private AVSDK.Book book;
+    private UInt16 chapterIdx = 0;
+    private AVSDK.Chapter chapter;
+    private byte ch = 1;
+    private UInt32 first = Startup.api.Chapters[0].writIdx;
+    private UInt32 last = (UInt32)(Startup.api.Chapters[0].writIdx + Startup.api.Chapters[0].wordCnt - 1);
+
+    private bool avx = false;
+
+    string GetBookAndChapter()
+    {
+        var parts = UriHelper.Uri.Split('?');
+        if (parts.Length >= 2)
+        {
+            try
+            {
+                parts = parts[parts.Length - 1].Split('&');
+                if (parts.Length >= 2)
+                {
+                    var b = byte.Parse(parts[0]);
+                    book = BibleSummaryData.GetBook(b);
+
+                    parts = parts[parts.Length - 1].Split('#');
+                    ch = byte.Parse(parts[0]);
+                }
+            }
+            catch
+            {
+                ch = 1;
+                book = BibleSummaryData.GetBook(1);
+            }
+        }
+        chapter = Startup.api.Chapters[book.chapterIdx];
+        first = chapter.writIdx;
+        last = (UInt32)(first + chapter.wordCnt - 1);
+        return book.name + " " + ch.ToString();
+        
+    }
+    string PostPunc(byte punc)
+    {
+        switch (punc & 0xE0)
+        {
+            case 0x80: return "!";
+            case 0xC0: return "?";
+            case 0xE0: return ".";
+            case 0xA0: return "-";
+            case 0x20: return ";";
+            case 0x40: return ",";
+            case 0x60: return ":";
+            default:   return null;
+        }
+    }
+}

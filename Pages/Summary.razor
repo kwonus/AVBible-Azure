@@ -1,0 +1,34 @@
+﻿@page "/summary"
+
+@using DigitalAV.Data
+@using AVSDK
+
+<h1>Book Summaries</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Book</th>
+            <th>Chapters</th>
+            <th>Verses</th>
+            <th>Words</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var summary in BibleSummaryData.GetSummaryData())
+        {
+            <tr>
+                <td>@summary.name</td>
+                <td>@summary.chapters.ToString()</td>
+                <td>@summary.verses.ToString()</td>
+                <td>@summary.words.ToString()</td>
+            </tr>
+        }
+        <tr>
+            <td><b>Totals</b></td>
+            <td>@BibleSummaryData.Totals.c.ToString()</td>
+            <td>@BibleSummaryData.Totals.v.ToString()</td>
+            <td>@BibleSummaryData.Totals.w.ToString()</td>
+        </tr>
+    </tbody>
+</table>

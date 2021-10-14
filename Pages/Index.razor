@@ -1,0 +1,20 @@
+﻿@page "/"
+@using Microsoft.Extensions.Logging
+
+<EditForm Model="@exampleModel" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <InputText id="name" @bind-Value="exampleModel.Name" />
+
+    <button type="submit">Find</button>
+</EditForm>
+
+@code {
+    private ExampleModel exampleModel = new();
+
+    private void HandleValidSubmit()
+    {
+        // Process the valid form
+    }
+}

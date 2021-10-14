@@ -1,0 +1,46 @@
+﻿@page "/book"
+
+@using DigitalAV.Data
+@using AVSDK
+
+@inject NavigationManager UriHelper
+
+<h1>@GetBook()</h1>
+
+
+<span>
+    @for (int c = 1; c <= (int)(bk.chapterCnt); c++)
+    {
+        var buttonNumber = c;
+        <button class="btn btn-chapter" id='@("B" + bk.num.ToString() + "C" + c.ToString())' @onclick="() => ChapterSelection(buttonNumber)">@c.ToString()</button>
+    }
+</span>
+
+@code
+{
+    private AVSDK.Book bk;
+
+    private void ChapterSelection(int chapter)
+    {
+        UriHelper.NavigateTo("/chapter?" + bk.num.ToString() + "&" + chapter.ToString());
+    }
+    private string GetBook()
+    {
+        var parts = UriHelper.Uri.Split('?');
+        if (parts.Length >= 2)
+        {
+            try
+            {
+                var b = byte.Parse(parts[parts.Length-1]);
+                bk = BibleSummaryData.GetBook(b);
+                return bk.name;
+            }
+            catch
+            {
+                ;
+            }
+        }
+        bk = BibleSummaryData.GetBook(1);
+        return bk.name;
+    }
+}

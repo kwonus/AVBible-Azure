@@ -1,0 +1,41 @@
+﻿@page "/browse"
+
+@using DigitalAV.Data
+@using AVSDK
+
+@inject NavigationManager UriHelper
+
+<h1>Old Testament</h1>
+
+<span>
+    @foreach (var summary in BibleSummaryData.GetSummaryData())
+    {
+        if (summary.book <= 39)
+        {
+            <button class="btn btn-book" id='@("B" + summary.book.ToString())' @onclick="() => BookSelection(summary.book.ToString())">@summary.name</button>
+        }
+    }
+</span>
+
+<h1>New Testament</h1>
+
+<span>
+    @foreach (var summary in BibleSummaryData.GetSummaryData())
+    {
+        if (summary.book >= 40)
+        {
+            <button class="btn btn-book" id='@("B" + summary.book.ToString())' @onclick="() => BookSelection(summary.book.ToString())">@summary.name</button>
+        }
+    }
+</span>
+
+@code
+{
+    private int currentBook = 0;
+    private string currentMode = "Bible - Browse books";
+
+    private void BookSelection(string book)
+    {
+        UriHelper.NavigateTo("/book?" + book);
+    }
+}
