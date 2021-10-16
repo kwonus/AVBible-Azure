@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 
-public class ExampleModel
+public class SearchModel
 {
     [Required]
-    [StringLength(10, ErrorMessage = "Name is too long.")]
-    public string Name { get; set; }
+    [StringLength(4096, ErrorMessage = "Search specification is too long.")]
+    public string SearchSpec { get; set; }
 }

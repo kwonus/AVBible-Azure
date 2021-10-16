@@ -1,0 +1,86 @@
+﻿@page "/"
+@using AVSDK
+
+<EditForm Model="@find" OnValidSubmit="@SubmitSearch">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <InputText id="name" @bind-Value="find.SearchSpec" />
+
+    <button type="submit">Find</button>
+    <br />    <br />
+    <div>
+        @if (found.success == true)
+        {
+            @foreach (var hit in found.result.verses)
+            {
+                <p><a href='@GetHyperlink(hit)'>@GetBookChapterVerse(hit)</a></p>
+            }
+        }
+        @if (found.success == false && found.hmi != null)
+        {
+            @foreach (var error in found.hmi.errors)
+            {
+                <p>ERROR: </p><p>@error</p><br />
+            }
+            @foreach (var warn in found.hmi.warnings)
+            {
+                <p>WARNING: </p><p>@warn</p><br />
+            }
+        }
+    </div>
+</EditForm>
+
+@code {
+    private SearchModel find = new();
+    private (bool success, QuelleHMI.HMICommand hmi, QuelleHMI.IQuelleSearchResult result) found = (false, null, null);
+
+    private void SubmitSearch()
+    {
+        found = QuelleCommand(find.SearchSpec);
+    }
+    private string GetBookChapterVerse(UInt16 vidx)
+    {
+        byte bk;
+        byte ch;
+        byte vs;
+        byte ignore;
+
+        if (Startup.api.XVerse.GetEntry(vidx, out bk, out ch, out vs, out ignore))
+        {
+            return Startup.api.XBook.GetBookByNum(bk).Value.name + " " + ch.ToString() + ":" + vs.ToString();
+        }
+        return "";
+    }
+    private string GetHyperlink(UInt16 vidx)
+    {
+        byte bk;
+        byte ch;
+        byte vs;
+        byte ignore;
+
+        if (Startup.api.XVerse.GetEntry(vidx, out bk, out ch, out vs, out ignore))
+        {
+            return "/chapter?" + bk.ToString() + "&" + ch.ToString(); // + "?" + vs.ToString();
+        }
+        return "";
+    }
+    private (bool success, QuelleHMI.HMICommand hmi, QuelleHMI.IQuelleSearchResult result) QuelleCommand(string text)
+    {
+        (bool success, QuelleHMI.HMICommand hmi, QuelleHMI.IQuelleSearchResult result) command = (false, null, null);
+
+        command.hmi = new QuelleHMI.HMICommand(text.Replace('+', ';')); // allow plus to be used to delimit search segments
+
+        if (command.hmi.statement != null && command.hmi.statement.segmentation != null && command.hmi.statement.segmentation.Count >= 1 && command.hmi.errors.Count == 0)
+        {
+            command.result = command.hmi.statement.ExecuteEx(Startup.api);
+        }
+        else
+        {
+            command.result = null;
+        }
+        command.success = (command.result != null);
+
+        return command;
+    }
+}
