@@ -61,7 +61,7 @@
 
         if (Startup.api.XVerse.GetEntry(vidx, out bk, out ch, out vs, out ignore))
         {
-            return "/chapter?" + bk.ToString() + "&" + ch.ToString(); // + "?" + vs.ToString();
+            return "/chapter?" + bk.ToString() + "&" + ch.ToString() + "#v" + vs.ToString();
         }
         return "";
     }

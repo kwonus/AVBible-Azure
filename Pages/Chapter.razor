@@ -135,7 +135,7 @@
 
     string GetBookAndChapter()
     {
-        var parts = UriHelper.Uri.Split('?');
+        var parts = UriHelper.Uri.Split('#')[0].Split('?');
         if (parts.Length >= 2)
         {
             try
