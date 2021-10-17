@@ -26,6 +26,8 @@ a, .btn-link {
 
 .content {
     padding-top: 1.1rem;
+    height: stretch;
+    overflow-wrap: break-word;
 }
 
 .valid.modified:not([type=checkbox]) {

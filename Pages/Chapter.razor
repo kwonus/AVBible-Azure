@@ -6,9 +6,9 @@
 
 @inject NavigationManager UriHelper
 
-<h1>@GetBookAndChapter()</h1>
+<h1 hidden="hidden">@GetBookAndChapter()</h1>
 
-<div style="word-break:break-word; overflow-y:scroll">
+<div style="word-break:break-word">
     @for (var cursor = first; cursor <= last && GetWrit(cursor); cursor++)
     {
         @if (bov)
@@ -145,9 +145,7 @@
                 {
                     var b = byte.Parse(parts[0]);
                     book = BibleSummaryData.GetBook(b);
-
-                    parts = parts[parts.Length - 1].Split('#');
-                    ch = byte.Parse(parts[0]);
+                    ch = byte.Parse(parts[parts.Length - 1]);
                 }
             }
             catch

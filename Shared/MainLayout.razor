@@ -1,4 +1,7 @@
 ﻿@inherits LayoutComponentBase
+@using DigitalAV.Data
+
+@inject NavigationManager UriHelper
 
 <div class="page">
     <div class="sidebar">
@@ -7,7 +10,7 @@
 
     <div class="main">
         <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+            @GetBookAndChapter()
         </div>
 
         <div class="content px-4">
@@ -15,3 +18,31 @@
         </div>
     </div>
 </div>
+
+@code {
+    private string bookchapter = "";
+    string GetBookAndChapter()
+    {
+        var parts = UriHelper.Uri.Split('#')[0].Split('?');
+        if (parts.Length >= 2)
+        {
+            try
+            {
+                parts = parts[parts.Length - 1].Split('&');
+                if (parts.Length >= 2)
+                {
+                    var bk = byte.Parse(parts[0]);
+                    var ch = byte.Parse(parts[parts.Length - 1]);
+                    bookchapter = BibleSummaryData.GetBook(bk).name + " " + ch;
+                    return bookchapter;
+                }
+            }
+            catch
+            {
+                ;
+            }
+        }
+        bookchapter = "";
+        return bookchapter;
+    }
+}
