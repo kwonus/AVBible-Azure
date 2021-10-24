@@ -8,7 +8,7 @@
 
 <h1 hidden="hidden">@GetBookAndChapter()</h1>
 
-<div style="word-break:break-word">
+<div style="overflow-y: scroll; word-break: break-word;">
     @for (var cursor = first; cursor <= last && GetWrit(cursor); cursor++)
     {
         @if (bov)
@@ -107,7 +107,7 @@
             {
                 parenOpen = false;
             }
-            punc = PostPunc(writ.punc);
+            punc = BookSummary.PostPunc(writ.punc);
 
             Startup.api.XWrit.Next();
 
@@ -159,19 +159,5 @@
         last = (UInt32)(first + chapter.wordCnt - 1);
         return book.name + " " + ch.ToString();
         
-    }
-    string PostPunc(byte punc)
-    {
-        switch (punc & 0xE0)
-        {
-            case 0x80: return "!";
-            case 0xC0: return "?";
-            case 0xE0: return ".";
-            case 0xA0: return "-";
-            case 0x20: return ";";
-            case 0x40: return ",";
-            case 0x60: return ":";
-            default:   return null;
-        }
     }
 }

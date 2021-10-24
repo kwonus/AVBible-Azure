@@ -2,6 +2,7 @@
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    overflow: hidden;
 }
 
 a, .btn-link {
@@ -26,8 +27,10 @@ a, .btn-link {
 
 .content {
     padding-top: 1.1rem;
-    height: stretch;
-    overflow-wrap: break-word;
+    height: *;
+    overflow-y: auto;
+    overflow-wrap: normal;
+    text-align: justify;
 }
 
 .valid.modified:not([type=checkbox]) {

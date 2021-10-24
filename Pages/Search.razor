@@ -1,5 +1,8 @@
 ﻿@page "/"
+@using DigitalAV
+@using DigitalAV.Data
 @using AVSDK
+@using AVText
 
 <EditForm Model="@find" OnValidSubmit="@SubmitSearch">
     <DataAnnotationsValidator />
@@ -14,7 +17,54 @@
         {
             @foreach (var hit in found.result.verses)
             {
-                <p><a href='@GetHyperlink(hit)'>@GetBookChapterVerse(hit)</a></p>
+        <p>
+            <a href='@GetHyperlink(hit)'>@GetBookChapterVerse(hit)</a><br />
+            <div style="overflow-y: scroll; word-break: break-word;">
+                @for (cursor = BookSummary.GetCursorForVerse(hit, out last); cursor <= last && GetWrit(cursor); cursor++)
+                {
+                    @if (parenOpen)
+                    {
+                        <span>&nbsp;(</span>
+                    }
+                    @if (!parenOpen)
+                    {
+                        <span>&nbsp;</span>
+                    }
+                    @if (italics)
+                    {
+                        <em>
+                            @if (jesus)
+                            {
+                                <span class='@wid' verse='verse' jesus='1'>@lex</span>
+                            }
+                            @if (!jesus)
+                            {
+                                <span class='@wid' verse='verse'>@lex</span>
+                            }
+                        </em>
+                    }
+                    @if (!italics)
+                    {
+                        @if (jesus == true)
+                        {
+                            <span class='@wid' verse='@vid' jesus='1'>@lex</span>
+                        }
+                        @if (jesus != true)
+                        {
+                            <span class='@wid' verse='@vid'>@lex</span>
+                        }
+                    }
+                    @if (parenClose)
+                    {
+                        <span>)</span>
+                    }
+                    @if (punc != null)
+                    {
+                        <span>@punc</span>
+                    }
+                }
+            </div>
+        </p>
             }
         }
         @if (found.success == false && found.hmi != null)
@@ -34,6 +84,73 @@
 @code {
     private SearchModel find = new();
     private (bool success, QuelleHMI.HMICommand hmi, QuelleHMI.IQuelleSearchResult result) found = (false, null, null);
+    private Writ176 writ;
+    private UInt32 cursor;
+    private UInt32 last;
+    private byte v = 0;
+    private string vstr = "1";
+    private string vid = "v1";
+    private string wid = "w1";
+    private bool paren = false;
+    private bool parenOpen = false;
+    private bool parenClose = false;
+    private bool bov = true;
+    private bool avx = false;
+    private byte wordCnt;
+
+    private bool jesus = false;
+    private bool italics = false;
+    private string lex = "";
+    private string punc = null;
+
+    private bool GetWrit(UInt32 cursor)
+    {
+        var result = Startup.api.XWrit.GetRecord(cursor, ref writ);
+        if (result)
+        {
+            parenClose = false;
+            wid = "w" + writ.word;
+            lex = avx ? AVLexicon.GetLexModern(writ.word) : AVLexicon.GetLex(writ.word);
+            if ((writ.punc & 0x10) != 0)
+            {
+                var s = (lex[lex.Length - 1] | 0x20) == 's';
+                lex += (s ? "'" : "'s");
+            }
+            bov = (writ.trans & (byte)AVSDK.Transitions.VerseTransition) == (byte)AVSDK.Transitions.BeginingOfVerse;
+            if (bov)
+            {
+                vstr = (++v).ToString();
+                vid = "v" + vstr;
+            }
+            jesus = (writ.punc & 0x01) != 0;
+            italics = (writ.punc & 0x02) != 0;
+
+            if (((writ.punc & 0x04) != 0) && !paren)
+            {
+                paren = true;
+                parenOpen = true;
+            }
+            else
+            {
+                parenOpen = false;
+            }
+            punc = BookSummary.PostPunc(writ.punc);
+
+            Startup.api.XWrit.Next();
+
+            if (paren)
+            {
+                var next = Startup.api.XWrit.GetRecord(cursor, ref writ);
+
+                if (((writ.punc & 0x04) == 0) && !paren)
+                {
+                    paren = false;
+                    parenClose = true;
+                }
+            }
+        }
+        return result;
+    }
 
     private void SubmitSearch()
     {
