@@ -11,118 +11,60 @@
 <div style="overflow-y: scroll; word-break: break-word;">
     @for (var cursor = first; cursor <= last && GetWrit(cursor); cursor++)
     {
-        @if (bov)
+        @if (wref.bov)
         {
-            <span id='@vid' class='verse'><b><sup>@vstr</sup></b> </span>
+            <span id='@wref.vid' class='verse'><b><sup>@wref.vstr</sup></b> </span>
         }
-        @if (parenOpen)
+        @if (wref.parenOpen)
         {
             <span>&nbsp;(</span>
         }
-        @if (!parenOpen)
+        @if (!wref.parenOpen)
         {
             <span>&nbsp;</span>
         }
-        @if (italics)
+        @if (wref.italics)
         {
             <em>
-                @if (jesus)
+                @if (wref.jesus)
                 {
-                    <span class='@wid' verse='verse' jesus='1'>@lex</span>
+                    <span class='@wref.wid' verse='verse' jesus='1'>@wref.lex</span>
                 }
-                @if (!jesus)
+                @if (!wref.jesus)
                 {
-                    <span class='@wid' verse='verse'>@lex</span>
+                    <span class='@wref.wid' verse='verse'>@wref.lex</span>
                 }
             </em>
         }
-        @if (!italics)
+        @if (!wref.italics)
         {
-            @if (jesus == true)
+            @if (wref.jesus == true)
             {
-                <span class='@wid' verse='@vid' jesus='1'>@lex</span>
+                <span class='@wref.wid' verse='@wref.vid' jesus='1'>@wref.lex</span>
             }
-            @if (jesus != true)
+            @if (wref.jesus != true)
             {
-                <span class='@wid' verse='@vid'>@lex</span>
+                <span class='@wref.wid' verse='@wref.vid'>@wref.lex</span>
             }
         }
-        @if (parenClose)
+        @if (wref.parenClose)
         {
             <span>)</span>
         }
-        @if (punc != null)
+        @if (wref.punc != null)
         {
-            <span>@punc</span>
+            <span>@wref.punc</span>
         }
     }
 </div>
 
 @code
 {
-    private Writ176 writ;
-    private UInt32 cursor;
-    private byte v = 0;
-    private string vstr = "1";
-    private string vid = "v1";
-    private string wid = "w1";
-    private bool paren = false;
-    private bool parenOpen = false;
-    private bool parenClose = false;
-    private bool bov = true;
-
-    private bool jesus = false;
-    private bool italics = false;
-    private string lex = "";
-    private string punc = null;
-
+    private WritRef wref = null;
     private bool GetWrit(UInt32 cursor)
     {
-        var result = Startup.api.XWrit.GetRecord(cursor, ref writ);
-        if (result)
-        {
-            parenClose = false;
-            wid = "w" + writ.word;
-            lex = avx ? AVLexicon.GetLexModern(writ.word) : AVLexicon.GetLex(writ.word);
-            if ((writ.punc & 0x10) != 0)
-            {
-                var s = (lex[lex.Length - 1] | 0x20) == 's';
-                lex += (s ? "'" : "'s");
-            }
-            bov = (writ.trans & (byte)AVSDK.Transitions.VerseTransition) == (byte)AVSDK.Transitions.BeginingOfVerse;
-            if (bov)
-            {
-                vstr = (++v).ToString();
-                vid = "v" + vstr;
-            }
-            jesus = (writ.punc & 0x01) != 0;
-            italics = (writ.punc & 0x02) != 0;
-
-            if (((writ.punc & 0x04) != 0) && !paren)
-            {
-                paren = true;
-                parenOpen = true;
-            }
-            else
-            {
-                parenOpen = false;
-            }
-            punc = BookSummary.PostPunc(writ.punc);
-
-            Startup.api.XWrit.Next();
-
-            if (paren)
-            {
-                var next = Startup.api.XWrit.GetRecord(cursor, ref writ);
-
-                if (((writ.punc & 0x04) == 0) && !paren)
-                {
-                    paren = false;
-                    parenClose = true;
-                }
-            }
-        }
-        return result;
+        WritRef.Reset(ref wref);
+        return wref.GetWrit(cursor);
     }
     private AVSDK.Book book;
     private UInt16 chapterIdx = 0;
@@ -158,6 +100,6 @@
         first = chapter.writIdx;
         last = (UInt32)(first + chapter.wordCnt - 1);
         return book.name + " " + ch.ToString();
-        
+
     }
 }
