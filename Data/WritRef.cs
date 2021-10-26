@@ -1,5 +1,7 @@
 ﻿using AVSDK;
 using AVText;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +11,14 @@ namespace DigitalAV.Data
 {
     public class WritRef
     {
-        public static bool avx { get; private set; }
+        public static bool AVX { get; private set; } = false;
+        public bool avx
+        {
+            get
+            {
+                return WritRef.AVX;
+            }
+        }
 
         public byte v { get; private set; } = 0;
         public string vstr { get; private set; } = "1";
@@ -76,7 +85,7 @@ namespace DigitalAV.Data
             {
                 parenClose = false;
                 wid = "w" + writ.word;
-                lex = WritRef.avx ? AVLexicon.GetLexModern(writ.word) : AVLexicon.GetLex(writ.word);
+                lex = WritRef.AVX ? AVLexicon.GetLexModern(writ.word) : AVLexicon.GetLex(writ.word);
                 if ((writ.punc & 0x10) != 0)
                 {
                     var s = (lex[lex.Length - 1] | 0x20) == 's';
@@ -163,6 +172,10 @@ namespace DigitalAV.Data
             }
             vnum = vlast;
             return cursor;
+        }
+        public JsonResult asJson()
+        {
+            return new JsonResult(this);
         }
     }
 }

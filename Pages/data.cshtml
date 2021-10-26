@@ -1,0 +1,57 @@
+﻿@page "/data"
+@using DigitalAV.Html
+@using DigitalAV.Data
+@model HtmlModel
+
+@if (WritRef.Reset(ref Model.wref))
+{
+    <p class="text-start text-wrap" style="overflow-x: hidden; overflow-y: auto">
+        @for (var cursor = Model.first; cursor <= Model.last && Model.wref.GetWrit(cursor); cursor++)
+        {
+            @if (Model.wref.bov)
+            {
+                <span id='@Model.wref.vid' class='verse'><b><sup>@Model.wref.vstr</sup></b> </span>
+            }
+            @if (Model.wref.parenOpen)
+            {
+                <span>&nbsp;(</span>
+            }
+            @if (!Model.wref.parenOpen)
+            {
+                <span>&nbsp;</span>
+            }
+            @if (Model.wref.italics)
+            {
+                <em>
+                    @if (Model.wref.jesus)
+                    {
+                        <span class='@Model.wref.wid' verse='@Model.wref.vstr' jesus='1'>@Model.wref.lex</span>
+                    }
+                    @if (!Model.wref.jesus)
+                    {
+                        <span class='@Model.wref.wid' verse='@Model.wref.vstr'>@Model.wref.lex</span>
+                    }
+                </em>
+            }
+            @if (!Model.wref.italics)
+            {
+                @if (Model.wref.jesus == true)
+                {
+                    <span class='@Model.wref.wid' verse='@Model.wref.vstr' jesus='1'>@Model.wref.lex</span>
+                }
+                @if (Model.wref.jesus != true)
+                {
+                    <span class='@Model.wref.wid' verse='@Model.wref.vstr'>@Model.wref.lex</span>
+                }
+            }
+            @if (Model.wref.parenClose)
+            {
+                <span>)</span>
+            }
+            @if (Model.wref.punc != null)
+            {
+                <span>@Model.wref.punc</span>
+            }
+        }
+    </p>
+}
