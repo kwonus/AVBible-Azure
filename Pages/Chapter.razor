@@ -8,95 +8,54 @@
 
 <h1 hidden="hidden">@GetBookAndChapter()</h1>
 
+<div style="margin:0px;padding:0px;overflow:hidden">
     @if (WritRef.Reset(ref wref))
     {
-        <p class="text-start text-wrap" style="overflow-x: hidden; overflow-y: auto">
-            @for (var cursor = first; cursor <= last && wref.GetWrit(cursor); cursor++)
-            {
-                @if (wref.bov)
-                {
-                    <span id='@wref.vid' class='verse'><b><sup>@wref.vstr</sup></b> </span>
-                }
-                @if (wref.parenOpen)
-                {
-                    <span>&nbsp;(</span>
-                }
-                @if (!wref.parenOpen)
-                {
-                    <span>&nbsp;</span>
-                }
-                @if (wref.italics)
-                {
-                    <em>
-                        @if (wref.jesus)
-                        {
-                            <span class='@wref.wid' verse='verse' jesus='1'>@wref.lex</span>
-                        }
-                        @if (!wref.jesus)
-                        {
-                            <span class='@wref.wid' verse='verse'>@wref.lex</span>
-                        }
-                    </em>
-                }
-                @if (!wref.italics)
-                {
-                    @if (wref.jesus == true)
-                    {
-                        <span class='@wref.wid' verse='@wref.vid' jesus='1'>@wref.lex</span>
-                    }
-                    @if (wref.jesus != true)
-                    {
-                        <span class='@wref.wid' verse='@wref.vid'>@wref.lex</span>
-                    }
-                }
-                @if (wref.parenClose)
-                {
-                    <span>)</span>
-                }
-                @if (wref.punc != null)
-                {
-                    <span>@wref.punc</span>
-                }
-            }
-        </p>
+        <iframe src='/data?@spec' frameborder="0" style="height: 80vh; overflow-x: hidden; overflow-y: auto; width: 100%; text-align: justify; ">
+            ERROR: Could not retrieve text for chapter content
+        </iframe>
     }
-    @code
+
+</div>
+
+@code
 {
-        private WritRef wref = null;
-        private AVSDK.Book book;
-        private UInt16 chapterIdx = 0;
-        private AVSDK.Chapter chapter;
-        private byte ch = 1;
-        private UInt32 first = Startup.api.Chapters[0].writIdx;
-        private UInt32 last = (UInt32)(Startup.api.Chapters[0].writIdx + Startup.api.Chapters[0].wordCnt - 1);
+    private WritRef wref = null;
+    private AVSDK.Book book;
+    private UInt16 chapterIdx = 0;
+    private AVSDK.Chapter chapter;
+    private byte ch = 1;
+    private UInt32 first = Startup.api.Chapters[0].writIdx;
+    private UInt32 last = (UInt32)(Startup.api.Chapters[0].writIdx + Startup.api.Chapters[0].wordCnt - 1);
+    private string spec = "";
 
-        private bool avx = false;
+    private bool avx = false;
 
-        string GetBookAndChapter()
+    string GetBookAndChapter()
+    {
+        var parts = UriHelper.Uri.Split('#')[0].Split('?');
+        if (parts.Length >= 2)
         {
-            var parts = UriHelper.Uri.Split('#')[0].Split('?');
-            if (parts.Length >= 2)
+            spec = parts[parts.Length - 1];
+            try
             {
-                try
+                parts = parts[parts.Length - 1].Split('&');
+                if (parts.Length >= 2)
                 {
-                    parts = parts[parts.Length - 1].Split('&');
-                    if (parts.Length >= 2)
-                    {
-                        var b = byte.Parse(parts[0]);
-                        book = BibleSummaryData.GetBook(b);
-                        ch = byte.Parse(parts[parts.Length - 1]);
-                    }
-                }
-                catch
-                {
-                    ch = 1;
-                    book = BibleSummaryData.GetBook(1);
+                    var b = byte.Parse(parts[0]);
+                    book = BibleSummaryData.GetBook(b);
+                    ch = byte.Parse(parts[parts.Length - 1]);
                 }
             }
-            chapter = Startup.api.Chapters[book.chapterIdx + ch - 1];
-            first = chapter.writIdx;
-            last = (UInt32)(first + chapter.wordCnt - 1);
-            return book.name + " " + ch.ToString();
-
+            catch
+            {
+                ch = 1;
+                book = BibleSummaryData.GetBook(1);
+            }
         }
+        chapter = Startup.api.Chapters[book.chapterIdx + ch - 1];
+        first = chapter.writIdx;
+        last = (UInt32)(first + chapter.wordCnt - 1);
+        return book.name + " " + ch.ToString();
     }
+}
