@@ -26,13 +26,13 @@ namespace DigitalAV.Data
         public string punc { get; private set; } = null;
         private Writ176 writ = Writ176.InitializedWrit;
 
-        public static void Reset(ref WritRef existing)
+        public static bool Reset(ref WritRef existing, byte? verse = null)
         {
             if (existing != null)
             {
-                existing.v = 0;
-                existing.vstr = "1";
-                existing.vid = "v1";
+                existing.v = verse != null ? verse.Value : (byte) 0;
+                existing.vstr = verse != null ? verse.Value.ToString() : "1";
+                existing.vid = "v" + verse != null ? existing.vstr : "1";
                 existing.wid = "w1";
                 existing.paren = false;
                 existing.parenOpen = false;
@@ -46,15 +46,16 @@ namespace DigitalAV.Data
             }
             else
             {
-                existing = new WritRef();
+                existing = new WritRef(verse);
             }
+            return true;
         }
 
-        public WritRef()
+        private WritRef(byte? verse = null)
         {
-            this.v = 0;
-            this.vstr = "1";
-            this.vid = "v1";
+            this.v = verse != null ? verse.Value : (byte)0;
+            this.vstr = verse != null ? verse.Value.ToString() : "1";
+            this.vid = "v" + verse != null ? this.vstr : "1";
             this.wid = "w1";
             this.paren = false;
             this.parenOpen = false;
@@ -130,7 +131,7 @@ namespace DigitalAV.Data
                 default: return null;
             }
         }
-        public static UInt32 GetCursorForVerse(UInt16 vidx, out UInt32 last)
+        public static UInt32 GetCursorForVerse(UInt16 vidx, out UInt32 last, out byte vnum)
         {
             UInt32 cursor = 0;
 
@@ -141,6 +142,7 @@ namespace DigitalAV.Data
             byte vlast = 0;
             byte wordCnt = 0;
             last = 0;
+            vnum = 0;
 
             if (Startup.api.XVerse.GetEntry(vidx, out b, out c, out v, out w))
             {
@@ -159,6 +161,7 @@ namespace DigitalAV.Data
                 }
                 last = cursor + wordCnt - 1;
             }
+            vnum = vlast;
             return cursor;
         }
     }

@@ -13,59 +13,59 @@
         <button type="submit">Find</button>
     </center>
     <br />    <br />
-    <div>
-        @if (found.success == true)
+    <center style ="width: 98%;" >
+        @if (found.success == true && WritRef.Reset(ref wref))
         {
             @foreach (var hit in found.result.verses)
             {
-        <p>
-            <a href='@GetHyperlink(hit)'>@GetBookChapterVerse(hit)</a><br />
-            <div style="overflow-y: scroll; word-break: break-word;">
-                @for (cursor = WritRef.GetCursorForVerse(hit, out last); cursor <= last && GetWrit(cursor); cursor++)
-                {
-                    @if (wref.parenOpen)
+            <p>
+                <a href='@GetHyperlink(hit)'>@GetBookChapterVerse(hit)</a><br />
+                <span>
+                    @for (cursor = WritRef.GetCursorForVerse(hit, out last, out verse); cursor <= last && wref.GetWrit(cursor); cursor++)
                     {
-                        <span>&nbsp;(</span>
-                    }
-                    @if (!wref.parenOpen)
-                    {
-                        <span>&nbsp;</span>
-                    }
-                    @if (wref.italics)
-                    {
-                        <em>
-                            @if (wref.jesus)
-                            {
-                                <span class='@wref.wid' verse='verse' jesus='1'>@wref.lex</span>
-                            }
-                            @if (!wref.jesus)
-                            {
-                                <span class='@wref.wid' verse='verse'>@wref.lex</span>
-                            }
-                        </em>
-                    }
-                    @if (!wref.italics)
-                    {
-                        @if (wref.jesus == true)
+                        @if (wref.parenOpen)
                         {
-                            <span class='@wref.wid' verse='@wref.vid' jesus='1'>@wref.lex</span>
+                            <span>&nbsp;(</span>
                         }
-                        @if (wref.jesus != true)
+                        @if (!wref.parenOpen)
                         {
-                            <span class='@wref.wid' verse='@wref.vid'>@wref.lex</span>
+                            <span>&nbsp;</span>
+                        }
+                        @if (wref.italics)
+                        {
+                            <em>
+                                @if (wref.jesus)
+                                {
+                                    <span class='@wref.wid' verse='verse' jesus='1'>@wref.lex</span>
+                                }
+                                @if (!wref.jesus)
+                                {
+                                    <span class='@wref.wid' verse='verse'>@wref.lex</span>
+                                }
+                            </em>
+                        }
+                        @if (!wref.italics)
+                        {
+                            @if (wref.jesus == true)
+                            {
+                                <span class='@wref.wid' verse='@wref.vid' jesus='1'>@wref.lex</span>
+                            }
+                            @if (wref.jesus != true)
+                            {
+                                <span class='@wref.wid' verse='@wref.vid'>@wref.lex</span>
+                            }
+                        }
+                        @if (wref.parenClose)
+                        {
+                            <span>)</span>
+                        }
+                        @if (wref.punc != null)
+                        {
+                            <span>@wref.punc</span>
                         }
                     }
-                    @if (wref.parenClose)
-                    {
-                        <span>)</span>
-                    }
-                    @if (wref.punc != null)
-                    {
-                        <span>@wref.punc</span>
-                    }
-                }
-            </div>
-        </p>
+                </span>
+            </p>
             }
         }
         @if (found.success == false && found.hmi != null)
@@ -79,7 +79,7 @@
                 <p>WARNING: </p><p>@warn</p><br />
             }
         }
-    </div>
+    </center>
 </EditForm>
 
 @code {
@@ -87,13 +87,9 @@
     private (bool success, QuelleHMI.HMICommand hmi, QuelleHMI.IQuelleSearchResult result) found = (false, null, null);
     private UInt32 cursor;
     private UInt32 last;
+    private byte verse;
 
     private WritRef wref = null;
-    private bool GetWrit(UInt32 cursor)
-    {
-        WritRef.Reset(ref wref);
-        return wref.GetWrit(cursor);
-    }
 
     private void SubmitSearch()
     {
