@@ -23,6 +23,10 @@
     private string bookchapter = "";
     string GetBookAndChapter()
     {
+        if (UriHelper.Uri.ToLower().Contains("/summary"))
+        {
+            return "Book Summaries";
+        }
         var parts = UriHelper.Uri.Split('#')[0].Split('?');
         if (parts.Length >= 2)
         {
