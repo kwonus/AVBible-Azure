@@ -17,23 +17,23 @@ namespace DigitalAV.Json
         public UInt32 first { get; private set; } = Startup.api.Chapters[0].writIdx;
         public UInt32 last { get; private set; } = (UInt32)(Startup.api.Chapters[0].writIdx + Startup.api.Chapters[0].wordCnt - 1);
 
-        public Dictionary<byte, List<WritRef>> map { get; private set; }
+        public Dictionary<byte, List<WritRefEx>> map { get; private set; }
 
         private bool GetWrit(UInt32 cursor)
         {
             if (this.wref.GetWrit(cursor))
             {
-                List<WritRef> vrefs;
+                List<WritRefEx> vrefs;
                 if (!this.map.ContainsKey(this.wref.v))
                 {
-                    vrefs = new List<WritRef>();
+                    vrefs = new List<WritRefEx>();
                     this.map[this.wref.v] = vrefs;
                 }
                 else
                 {
                     vrefs = this.map[this.wref.v];
                 }
-                vrefs.Add(this.wref);
+                vrefs.Add(new WritRefEx(this.wref));
                 return true;
             }
             return false;
@@ -70,12 +70,16 @@ namespace DigitalAV.Json
         public JsonResult OnGet()
         {
             GetBookAndChapter();
-            this.map = new Dictionary<byte, List<WritRef>>();
+            this.map = new Dictionary<byte, List<WritRefEx>>();
             WritRef.Reset(ref this.wref);
             for (var cursor = this.first; cursor <= this.last && this.GetWrit(cursor); cursor++)
             {
                 ;
             }
+            return new JsonResult(this.map);
+        }
+        public JsonResult asJson()
+        {
             return new JsonResult(this.map);
         }
     }
