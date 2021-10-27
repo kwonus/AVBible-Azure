@@ -9,21 +9,76 @@ using System.Threading.Tasks;
 
 namespace DigitalAV.Data
 {
+    public class WritRefEx
+    {
+        public byte v { get; private set; }
+        public UInt16 w { get; private set; }
+        public bool paren { get; private set; }
+        public bool parenOpen { get; private set; }
+        public bool parenClose { get; private set; }
+        public bool bov { get; private set; }
+
+        public bool jesus { get; private set; }
+        public bool italics { get; private set; }
+        public string lex { get; private set; }
+        public string punc { get; private set; }
+        public UInt64 strongs { get; private set; }
+        public byte trans { get; private set; }
+        public UInt16 pnwc { get; private set; }
+        public UInt32 pos { get; private set; }
+        public UInt16 lemma { get; private set; }
+
+        internal WritRefEx(WritRef wref)
+        {
+            this.w = wref.w;
+            this.v = wref.v;
+            this.paren = wref.paren;
+            this.parenOpen = wref.parenOpen;
+            this.parenClose = wref.parenClose;
+            this.bov = wref.bov;
+
+            this.jesus = wref.jesus;
+            this.italics = wref.italics;
+            this.lex = wref.lex;
+            this.punc = wref.punc;
+            this.strongs = wref.writ.strongs;
+            this.trans = wref.writ.trans;
+            this.pnwc = wref.writ.pnwc;
+            this.pos = wref.writ.pos;
+            this.lemma = wref.writ.lemma;
+        }
+    }
     public class WritRef
     {
         public static bool AVX { get; private set; } = false;
-        public bool avx
+        public static void SetModern(bool modern)
         {
-            get
-            {
-                return WritRef.AVX;
-            }
+            WritRef.AVX = modern;
         }
 
         public byte v { get; private set; } = 0;
-        public string vstr { get; private set; } = "1";
-        public string vid { get; private set; } = "v1";
-        public string wid { get; private set; } = "w1";
+        public UInt16 w { get; private set; } = 0;
+        public string vid
+        {
+            get
+            {
+                return "v" + v.ToString();
+            }
+        }
+        public string vstr
+        {
+            get
+            {
+                return v.ToString();
+            }
+        }
+        public string wid
+        {
+            get
+            {
+                return "w" + w.ToString();
+            }
+        }
         public bool paren { get; private set; } = false;
         public bool parenOpen { get; private set; } = false;
         public bool parenClose { get; private set; } = false;
@@ -33,16 +88,14 @@ namespace DigitalAV.Data
         public bool italics { get; private set; } = false;
         public string lex { get; private set; } = "";
         public string punc { get; private set; } = null;
-        private Writ176 writ = Writ176.InitializedWrit;
+        internal Writ176 writ = Writ176.InitializedWrit;
 
         public static bool Reset(ref WritRef existing, byte? verse = null)
         {
             if (existing != null)
             {
                 existing.v = verse != null ? verse.Value : (byte) 0;
-                existing.vstr = verse != null ? verse.Value.ToString() : "1";
-                existing.vid = "v" + verse != null ? existing.vstr : "1";
-                existing.wid = "w1";
+                existing.w = 0;
                 existing.paren = false;
                 existing.parenOpen = false;
                 existing.parenClose = false;
@@ -63,9 +116,7 @@ namespace DigitalAV.Data
         private WritRef(byte? verse = null)
         {
             this.v = verse != null ? verse.Value : (byte)0;
-            this.vstr = verse != null ? verse.Value.ToString() : "1";
-            this.vid = "v" + verse != null ? this.vstr : "1";
-            this.wid = "w1";
+            this.w = 0;
             this.paren = false;
             this.parenOpen = false;
             this.parenClose = false;
@@ -84,7 +135,7 @@ namespace DigitalAV.Data
             if (result)
             {
                 parenClose = false;
-                wid = "w" + writ.word;
+                w = (UInt16) (writ.word & 0x3FFF);
                 lex = WritRef.AVX ? AVLexicon.GetLexModern(writ.word) : AVLexicon.GetLex(writ.word);
                 if ((writ.punc & 0x10) != 0)
                 {
@@ -94,8 +145,7 @@ namespace DigitalAV.Data
                 bov = (writ.trans & (byte)AVSDK.Transitions.VerseTransition) == (byte)AVSDK.Transitions.BeginingOfVerse;
                 if (bov)
                 {
-                    vstr = (++v).ToString();
-                    vid = "v" + vstr;
+                    ++v;
                 }
                 jesus = (writ.punc & 0x01) != 0;
                 italics = (writ.punc & 0x02) != 0;
@@ -173,9 +223,9 @@ namespace DigitalAV.Data
             vnum = vlast;
             return cursor;
         }
-        public JsonResult asJson()
+        public WritRefEx asRecord()
         {
-            return new JsonResult(this);
+            return new WritRefEx(this);
         }
     }
 }
