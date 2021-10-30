@@ -5,7 +5,7 @@
 
 @inject NavigationManager UriHelper
 
-<h1>Old Testament</h1>
+<h3>Old Testament</h3>
 
 <span>
     @foreach (var summary in BibleSummaryData.GetSummaryData())
@@ -17,7 +17,7 @@
     }
 </span>
 
-<h1>New Testament</h1>
+<h3>New Testament</h3>
 
 <span>
     @foreach (var summary in BibleSummaryData.GetSummaryData())
@@ -36,6 +36,6 @@
 
     private void BookSelection(string book)
     {
-        UriHelper.NavigateTo("/book?" + book);
+        UriHelper.NavigateTo("/book?" + book, true);
     }
 }

@@ -5,7 +5,7 @@
 
 @inject NavigationManager UriHelper
 
-<h1>@GetBook()</h1>
+<h1 hidden="hidden">@GetBook()</h1>
 
 
 <span>
@@ -22,7 +22,7 @@
 
     private void ChapterSelection(int chapter)
     {
-        UriHelper.NavigateTo("/chapter?" + bk.num.ToString() + "&" + chapter.ToString());
+        UriHelper.NavigateTo("/chapter?" + bk.num.ToString() + "&" + chapter.ToString(), true);
     }
     private string GetBook()
     {

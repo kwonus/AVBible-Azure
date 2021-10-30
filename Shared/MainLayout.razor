@@ -1,8 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @using DigitalAV.Data
 
-@inject NavigationManager UriHelper
-
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -10,7 +8,7 @@
 
     <div class="main">
         <div class="top-row px-4">
-            @GetBookAndChapter()
+            Digital-AV
         </div>
 
         <div class="content px-4">
@@ -18,35 +16,3 @@
         </div>
     </div>
 </div>
-
-@code {
-    private string bookchapter = "";
-    string GetBookAndChapter()
-    {
-        if (UriHelper.Uri.ToLower().Contains("/summary"))
-        {
-            return "Book Summaries";
-        }
-        var parts = UriHelper.Uri.Split('#')[0].Split('?');
-        if (parts.Length >= 2)
-        {
-            try
-            {
-                parts = parts[parts.Length - 1].Split('&');
-                if (parts.Length >= 2)
-                {
-                    var bk = byte.Parse(parts[0]);
-                    var ch = byte.Parse(parts[parts.Length - 1]);
-                    bookchapter = BibleSummaryData.GetBook(bk).name + " " + ch;
-                    return bookchapter;
-                }
-            }
-            catch
-            {
-                ;
-            }
-        }
-        bookchapter = "";
-        return bookchapter;
-    }
-}
