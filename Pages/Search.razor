@@ -4,139 +4,36 @@
 @using AVSDK
 @using AVText
 
-<EditForm Model="@find" OnValidSubmit="@SubmitSearch">
+@inject NavigationManager UriHelper
+
+<EditForm Model="@search" OnValidSubmit="@UpdateSearch">
     <DataAnnotationsValidator />
     <ValidationSummary />
-    <center style ="width: 96%;" >
-        <InputText  style ="width: 80%;" id="name" @bind-Value="find.SearchSpec" />
+    <center style="width: 96%;">
+        <InputText style="width: 80%;" id="name" @bind-Value="search" />
 
         <button type="submit">Find</button>
     </center>
     <br />    <br />
-    <center style ="width: 98%;" >
-        @if (found.success == true && WritRef.Reset(ref wref))
-        {
-            @foreach (var hit in found.result.verses)
-            {
-            <p>
-                <a href='@GetHyperlink(hit)'>@GetBookChapterVerse(hit)</a><br />
-                <span>
-                    @for (cursor = WritRef.GetCursorForVerse(hit, out last, out verse); cursor <= last && wref.GetWrit(cursor); cursor++)
-                    {
-                        @if (wref.parenOpen)
-                        {
-                            <span>&nbsp;(</span>
-                        }
-                        @if (!wref.parenOpen)
-                        {
-                            <span>&nbsp;</span>
-                        }
-                        @if (wref.italics)
-                        {
-                            <em>
-                                @if (wref.jesus)
-                                {
-                                    <span class='@wref.wid' verse='wref.vid' jesus='1'>@wref.lex</span>
-                                }
-                                @if (!wref.jesus)
-                                {
-                                    <span class='@wref.wid' verse='wref.vid'>@wref.lex</span>
-                                }
-                            </em>
-                        }
-                        @if (!wref.italics)
-                        {
-                            @if (wref.jesus == true)
-                            {
-                                <span class='@wref.wid' verse='@wref.vid' jesus='1'>@wref.lex</span>
-                            }
-                            @if (wref.jesus != true)
-                            {
-                                <span class='@wref.wid' verse='@wref.vid'>@wref.lex</span>
-                            }
-                        }
-                        @if (wref.parenClose)
-                        {
-                            <span>)</span>
-                        }
-                        @if (wref.punc != null)
-                        {
-                            <span>@wref.punc</span>
-                        }
-                    }
-                </span>
-            </p>
-            }
-        }
-        @if (found.success == false && found.hmi != null)
-        {
-            @foreach (var error in found.hmi.errors)
-            {
-                <p>ERROR: </p><p>@error</p><br />
-            }
-            @foreach (var warn in found.hmi.warnings)
-            {
-                <p>WARNING: </p><p>@warn</p><br />
-            }
-        }
+    <center style="width: 98%;">
+        <div style="margin:0px;padding:0px;overflow:hidden">
+            <iframe src='/found?@search' frameborder="0" style="height: 80vh; overflow-x: hidden; overflow-y: auto; width: 100%; text-align: justify; ">
+                ERROR: Could execute search
+            </iframe>
+        </div>
     </center>
 </EditForm>
 
-@code {
-    private SearchModel find = new();
-    private (bool success, QuelleHMI.HMICommand hmi, QuelleHMI.IQuelleSearchResult result) found = (false, null, null);
-    private UInt32 cursor;
-    private UInt32 last;
-    private byte verse;
+@code
+{
+    private string search = "";
 
-    private WritRef wref = null;
-
-    private void SubmitSearch()
+    void UpdateSearch()
     {
-        found = QuelleCommand(find.SearchSpec);
-    }
-    private string GetBookChapterVerse(UInt16 vidx)
-    {
-        byte bk;
-        byte ch;
-        byte vs;
-        byte ignore;
-
-        if (Startup.api.XVerse.GetEntry(vidx, out bk, out ch, out vs, out ignore))
+        var parts = UriHelper.Uri.Split('#')[0].Split('?');
+        if (parts.Length >= 2)
         {
-            return Startup.api.XBook.GetBookByNum(bk).Value.name + " " + ch.ToString() + ":" + vs.ToString();
+            search = parts[parts.Length - 1];
         }
-        return "";
-    }
-    private string GetHyperlink(UInt16 vidx)
-    {
-        byte bk;
-        byte ch;
-        byte vs;
-        byte ignore;
-
-        if (Startup.api.XVerse.GetEntry(vidx, out bk, out ch, out vs, out ignore))
-        {
-            return "/chapter?" + bk.ToString() + "&" + ch.ToString() + "#v" + vs.ToString();
-        }
-        return "";
-    }
-    private (bool success, QuelleHMI.HMICommand hmi, QuelleHMI.IQuelleSearchResult result) QuelleCommand(string text)
-    {
-        (bool success, QuelleHMI.HMICommand hmi, QuelleHMI.IQuelleSearchResult result) command = (false, null, null);
-
-        command.hmi = new QuelleHMI.HMICommand(text.Replace('+', ';')); // allow plus to be used to delimit search segments
-
-        if (command.hmi.statement != null && command.hmi.statement.segmentation != null && command.hmi.statement.segmentation.Count >= 1 && command.hmi.errors.Count == 0)
-        {
-            command.result = command.hmi.statement.ExecuteEx(Startup.api);
-        }
-        else
-        {
-            command.result = null;
-        }
-        command.success = (command.result != null);
-
-        return command;
     }
 }

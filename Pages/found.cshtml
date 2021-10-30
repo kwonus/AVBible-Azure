@@ -1,0 +1,74 @@
+﻿@page "/found"
+@using DigitalAV.Found
+@using DigitalAV.Data
+@model FoundModel
+
+<h1 hidden="hidden">@Model.ExecuteSearch()</h1> 
+@if (WritRef.Reset(ref Model.wref))
+{
+    @if (Model.found.success == true && WritRef.Reset(ref Model.wref))
+    {
+        @foreach(var hit in Model.found.result.verses)
+        {
+            <p>
+            <a href='@Model.GetHyperlink(hit)' target='_top'>@Model.GetBookChapterVerse(hit)</a><br/>
+            <span>
+                @for(Model.cursor = WritRef.GetCursorForVerse(hit, out Model.last, out Model.verse); Model.cursor <= Model.last && Model.wref.GetWrit(Model.cursor); Model.cursor++)
+                {
+                    @if(Model.wref.parenOpen)
+                    {
+                        <span> &nbsp; (</span>
+                    }
+                    @if(!Model.wref.parenOpen)
+                    {
+                        <span> &nbsp;</span>
+                    }
+                    @if(Model.wref.italics)
+                    {
+                        <em>
+                        @if(Model.wref.jesus)
+                        {
+                            <span class='@Model.wref.wid' verse='wref.vid' jesus='1'>@Model.wref.lex</span>
+                        }
+                        @if(!Model.wref.jesus)
+                        {
+                            <span class='@Model.wref.wid' verse='wref.vid'>@Model.wref.lex</span>
+                        }
+                        </em>
+                    }
+                    @if(!Model.wref.italics)
+                    {
+                        @if(Model.wref.jesus == true)
+                        {
+                            <span class= '@Model.wref.wid' verse = '@Model.wref.vid' jesus = '1' > @Model.wref.lex </span>
+                        }
+                        @if(Model.wref.jesus != true)
+                        {
+                            <span class= '@Model.wref.wid' verse = '@Model.wref.vid' > @Model.wref.lex </span>
+                        }
+                    }
+                    @if(Model.wref.parenClose)
+                    {
+                        <span>)</span>
+                    }
+                    @if(Model.wref.punc != null)
+                    {
+                        <span>@Model.wref.punc</span>
+                    }
+                }
+            </span>
+            </p>
+        }
+    }
+    @if(Model.found.success == false && Model.found.hmi != null)
+    {
+        @foreach(var error in Model.found.hmi.errors)
+        {
+            <p> ERROR: </p><p> @error </p>< br/>
+        }
+        @foreach(var warn in Model.found.hmi.warnings)
+        {
+            <p> WARNING: </p><p> @warn </p><br/>
+        }
+    }
+}
