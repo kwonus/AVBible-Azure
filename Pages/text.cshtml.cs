@@ -17,30 +17,44 @@ namespace DigitalAV.Html
 
         private string GetBookAndChapter()
         {
-            var parts = new string[] { "foo", "1&3" }; // UriHelper.Uri.Split('#')[0].Split('?');
-            if (parts.Length >= 2)
+            string spec;
+            if (this.Request.QueryString.HasValue && (this.Request.QueryString.Value.Length >= 4) && (this.Request.QueryString.Value[0] == '?'))
+            {
+                spec = this.Request.QueryString.Value.Substring(1);
+                int hashtag = spec.IndexOf('#');
+                if (hashtag >= 0)
+                    spec = spec.Substring(0, hashtag);
+            }
+            else spec = "";
+
+            if (spec.Length >= 3 && spec.IndexOf('&') >= 1)
             {
                 try
                 {
-                    parts = parts[parts.Length - 1].Split('&');
+                    var parts = spec.Split('&');
                     if (parts.Length >= 2)
                     {
                         var b = byte.Parse(parts[0]);
                         book = BibleSummaryData.GetBook(b);
                         ch = byte.Parse(parts[parts.Length - 1]);
+
+                        chapter = Startup.api.Chapters[book.chapterIdx + ch - 1];
+                        first = chapter.writIdx;
+                        last = (UInt32)(first + chapter.wordCnt - 1);
+                        return book.name + " " + ch.ToString();
                     }
                 }
                 catch
                 {
-                    ch = 1;
-                    book = BibleSummaryData.GetBook(1);
+                    ;
                 }
             }
+            ch = 1;
+            book = BibleSummaryData.GetBook(1);
             chapter = Startup.api.Chapters[book.chapterIdx + ch - 1];
             first = chapter.writIdx;
             last = (UInt32)(first + chapter.wordCnt - 1);
             return book.name + " " + ch.ToString();
-
         }
         public string Message { get; private set; } = "PageModel in C#";
 
