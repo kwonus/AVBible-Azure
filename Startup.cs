@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +21,9 @@ namespace DigitalAV
         {
             Configuration = configuration;
         }
-        public static AVXAPI api { get; private set; }
+        public static AVXAPI api { get; private set; } = null;
+        public static LoggerFactory loggerFactory { get; private set; } = null;
+        public static ILogger logger { get; private set; } = null;
 
         public IConfiguration Configuration { get; }
 
@@ -28,9 +31,17 @@ namespace DigitalAV
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            Startup.api = new AVXAPI();
+            if (Startup.api == null)
+                Startup.api = new AVXAPI();
+            if (Startup.loggerFactory == null)
+                Startup.loggerFactory = new LoggerFactory();
+            if (Startup.logger == null)
+                Startup.logger = loggerFactory.CreateLogger("Startup");
+//          logger.LogDebug("foo", null);
             services.AddRazorPages();
             services.AddServerSideBlazor();
+
+            Startup.logger.LogDebug("Service initialized", null);
          }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

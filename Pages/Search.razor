@@ -3,6 +3,7 @@
 @using DigitalAV.Data
 @using AVSDK
 @using AVText
+@using Microsoft.Extensions.Logging
 
 @inject NavigationManager UriHelper
 
@@ -30,10 +31,17 @@
 
     void UpdateSearch()
     {
+        Startup.logger.LogDebug("Starting search request: " + UriHelper.Uri, null);
+
         var parts = UriHelper.Uri.Split('#')[0].Split('?');
         if (parts.Length >= 2)
         {
             search = parts[parts.Length - 1];
+            Startup.logger.LogDebug("Completed search request: " + UriHelper.Uri, null);
+        }
+        else
+        {
+            Startup.logger.LogDebug("Completed search request (nothing to search): " + UriHelper.Uri, null);
         }
     }
 }
