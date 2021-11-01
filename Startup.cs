@@ -22,8 +22,8 @@ namespace DigitalAV
             Configuration = configuration;
         }
         public static AVXAPI api { get; private set; } = null;
-        public static LoggerFactory loggerFactory { get; private set; } = null;
-        public static ILogger logger { get; private set; } = null;
+//      public static LoggerFactory loggerFactory { get; private set; } = null;
+//      public static ILogger logger { get; private set; } = null;
 
         public IConfiguration Configuration { get; }
 
@@ -33,15 +33,15 @@ namespace DigitalAV
         {
             if (Startup.api == null)
                 Startup.api = new AVXAPI();
-            if (Startup.loggerFactory == null)
+            /*if (Startup.loggerFactory == null)
                 Startup.loggerFactory = new LoggerFactory();
             if (Startup.logger == null)
-                Startup.logger = loggerFactory.CreateLogger("Startup");
+                Startup.logger = loggerFactory.CreateLogger("Startup");*/
 //          logger.LogDebug("foo", null);
             services.AddRazorPages();
             services.AddServerSideBlazor();
 
-            Startup.logger.LogDebug("Service initialized", null);
+//          Startup.logger.LogDebug("Service initialized", null);
          }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
